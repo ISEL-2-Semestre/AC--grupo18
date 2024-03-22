@@ -14,18 +14,34 @@ main_addr:
 	.word	main
 
 ;defines
-.equ RED_SCALE, 2
-.equ AMBAR_SCALE, 1
-.equ GREEN_SCALE, 0
+.equ    RED_SCALE, 2
+.equ    AMBAR_SCALE, 1
+.equ    GREEN_SCALE, 0
 
-.equ WARNING_TIME, 300
-.equ CRITICAL_TIME, 150
+.equ    WARNING_TIME, 300
+.equ    CRITICAL_TIME, 150
 
 
 .text
 
 main:
     mov     pc, lr
+    push    r4
+    mov     r3, #0
+    mov     r4, #3
+    cmp     r3, r4
+    blo     main_while
+    b       test_color_scale
+    mov     pc, #0
+    
+
+
+    
+main_while:
+    mov     color_histogram[r3], #0
+    add     r3, r3, #1
+
+
 color_scale:
     ;registos:
     ;r0 = t
@@ -47,13 +63,17 @@ color_scale:
     cmp     r5, r0 
     blo     color_scale_if2
     mov     r4, #AMBAR_SCALE ;corpo do if1
+    b       color_scale_end
+    
 
 
 
 color_scale_if2: ; corpo do if2
     mov     r4, #RED_SCALE
 
-color_scale_end:
+color_scale_end: ;retorna o c, r4
+    pop     r6
+    pop     r5
 
 test_color_scale:
     ; r0 = array_t[]
@@ -66,10 +86,9 @@ test_color_scale:
     push    r5
     mov     r3, #0
     
-test_color_scale_loop:
-    ; for
+test_color_scale_for:
     cmp     r3, r2
-    bge     test_color_scale_ret
+    bge     test_color_scale_end
 
     ldr     r4, [r0 , r3]   ;array_t[i]
     push    r0
@@ -82,26 +101,29 @@ test_color_scale_loop:
     str     r5, [r1, r4]
 
     add     r3, r3, #1
-    b       test_color_scale_loop
+    b       test_color_scale_for
 
-test_color_scale_ret:
+test_color_scale_end:
     pop     r5
     pop     r4
     mov     pc, lr
 
+
+
+
 .data
 
 color_histogram: 
-    .space 3
+    .space      3
     .align
 
 times:
-    .word 65535 , 500, 301, 300, 299, 151, 150, 149, 1, 0
+    .word       65535 , 500, 301, 300, 299, 151, 150, 149, 1, 0
 
 
-    .equ STACK_SIZE, 64
-    .section .stack
-	.space STACK_SIZE
+    .equ        STACK_SIZE, 64
+    .section    .stack
+	.space      STACK_SIZE
     
 stack_top:
 
