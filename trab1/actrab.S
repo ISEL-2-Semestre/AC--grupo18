@@ -1,22 +1,65 @@
-.section .startup
-b _start
-b.
-
+	.section .startup
+	b		_start
+	b 		.
 _start:
-    ldr sp, stack_top_addr
-    mov r0, pc
-    add lr, r0, #4
-    ldr pc, main_addr
-    b.
+	ldr		sp, stack_top_addr
+	mov		r0, pc
+	add		lr, r0, #4
+	ldr		pc, main_addr
+	b 		.	
 
-.data
-.equ RED_SIGNAL, 2
-.equ AMBAR_SIGNAL, 1
-.equ GREEN_SIGNAL, 0
+stack_top_addr:
+	.word stack_top
+main_addr:
+	.word	main
+
+;defines
+.equ RED_SCALE, 2
+.equ AMBAR_SCALE, 1
+.equ GREEN_SCALE, 0
 
 .equ WARNING_TIME, 300
 .equ CRITICAL_TIME, 150
 
+
+.text
+
+main:
+    mov pc, lr
+color_scale:
+    ;registos:
+    ;r0 = t
+    ;r4 = c
+    ;r5 = WARNING_TIME
+    ;r6 = CRITICAL_TIME
+    ;por registos no stack
+    push r4
+    push r5
+    push r6
+    ;associar valores aos registos
+    mov r4, #GREEN_SCALE
+    mov r5, #WARNING_TIME & 0xFF ;guardar somente os primeiros bits
+    movt r5, #WARNING_TIME >> 8
+    mov r6, #CRITICAL_TIME
+
+    cmp r0, r6
+    blo color_scale_if2
+    cmp r5, r0 
+    blo color_scale_if2
+    mov r4, #AMBAR_SCALE ;corpo do if1
+
+
+
+color_scale_if2: ; corpo do if2
+    mov r4, #RED_SCALE
+
+color_scale_end:
+
+test_color_scale:
+
+
+
+.data
 
 color_histogram: 
     .space 3
@@ -25,6 +68,15 @@ color_histogram:
 times:
     .word 65535 , 500, 301, 300, 299, 151, 150, 149, 1, 0
 
-color_scale:
-    mov r0, GREEN_SIGNAL
+
+    .equ STACK_SIZE, 64
+    .section .stack
+	.space STACK_SIZE
+    
+stack_top:
+
+
+
+
+
 
