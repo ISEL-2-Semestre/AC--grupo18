@@ -25,7 +25,7 @@ main_addr:
 .text
 
 main:
-    mov pc, lr
+    mov     pc, lr
 color_scale:
     ;registos:
     ;r0 = t
@@ -33,31 +33,61 @@ color_scale:
     ;r5 = WARNING_TIME
     ;r6 = CRITICAL_TIME
     ;por registos no stack
-    push r4
-    push r5
-    push r6
+    push    r4
+    push    r5
+    push    r6
     ;associar valores aos registos
-    mov r4, #GREEN_SCALE
-    mov r5, #WARNING_TIME & 0xFF ;guardar somente os primeiros bits
-    movt r5, #WARNING_TIME >> 8
-    mov r6, #CRITICAL_TIME
+    mov     r4, #GREEN_SCALE
+    mov     r5, #WARNING_TIME & 0xFF ;guardar somente os primeiros bits
+    movt    r5, #WARNING_TIME >> 8
+    mov     r6, #CRITICAL_TIME
 
-    cmp r0, r6
-    blo color_scale_if2
-    cmp r5, r0 
-    blo color_scale_if2
-    mov r4, #AMBAR_SCALE ;corpo do if1
+    cmp     r0, r6
+    blo     color_scale_if2
+    cmp     r5, r0 
+    blo     color_scale_if2
+    mov     r4, #AMBAR_SCALE ;corpo do if1
 
 
 
 color_scale_if2: ; corpo do if2
-    mov r4, #RED_SCALE
+    mov     r4, #RED_SCALE
 
 color_scale_end:
 
 test_color_scale:
+    ; r0 = array_t[]
+    ; r1 = array_c[]
+    ; r2 = array_t_size
+    ; r3 = i
+    ; r4 = color_scale(array_t[i])
+    ; r5 = array_c[r4]
+    push    r4
+    push    r5
+    mov     r3, #0
+    
+test_color_scale_loop:
+    ; for
+    cmp     r3, r2
+    bge     test_color_scale_ret
 
+    ldr     r4, [r0 , r3]   ;array_t[i]
+    push    r0
+    mov     r0, r4
+    b       color_scale
+    mov     r4, r0
+    pop     r0
+    ldr     r5, [r1, r4]
+    add     r5, r5, #1
+    str     r5, [r1, r4]
 
+    add     r3, r3, #1
+    b       test_color_scale_loop
+
+test_color_scale_ret:
+    pop     r5
+    pop     r4
+    mov     pc, lr
 
 .data
 
